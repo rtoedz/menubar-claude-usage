@@ -22,5 +22,17 @@ DerivedData/
 # Local Claude instructions (not for public repo)
 CLAUDE.md
 
+# Python (Linux app)
+__pycache__/
+*.pyc
+linux/build/dist/
+linux/build/build/
+linux/build/*.spec
+linux/build/ClaudeUsageBar.AppDir/
+linux/build/appimagetool
+linux/build/*.AppImage
+linux/build/*.deb
+linux/build/*.rpm
+
 # Credentials
 .netrc

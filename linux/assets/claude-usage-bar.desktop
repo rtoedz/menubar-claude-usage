@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=Claude Usage Bar
+Exec=claude-usage-bar
+Icon=claude-usage-bar
+X-GNOME-Autostart-enabled=true

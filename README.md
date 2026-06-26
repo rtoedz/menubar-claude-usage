@@ -96,7 +96,9 @@ When the token expires it no longer pretends you're signed out — it shows a cl
 
 ## Installation
 
-### Option A — DMG (recommended)
+### macOS
+
+**Option A — DMG (recommended)**
 
 1. Download the latest `ClaudeUsageBar-x.x.x.dmg` from [Releases](../../releases)
 2. Open the DMG and drag **ClaudeUsageBar** onto **Applications**
@@ -108,7 +110,7 @@ When the token expires it no longer pretends you're signed out — it shows a cl
 
 > On first launch, macOS may ask to allow access to the *Claude Code-credentials* Keychain item — click **Always Allow**.
 
-### Option B — Build from source
+**Option B — Build from source**
 
 ```bash
 git clone https://github.com/rtoedz/menubar-claude-usage.git
@@ -119,6 +121,46 @@ open ~/Applications/ClaudeUsageBar.app
 ```
 
 > **Tip:** Install to `~/Applications/` (not just run from the project folder) so Launch at Login persists.
+
+### Linux
+
+**Dependencies:**
+- Python 3.10+
+- `python3-gi`, `gir1.2-gtk-3.0`
+- `gir1.2-ayatanaappindicator3-0.1` (or `gir1.2-appindicator3-0.1` on older distros)
+
+> **Important for GNOME 45+ users:** You must install the [AppIndicator and KStatusNotifierItem Support](https://extensions.gnome.org/extension/615/appindicator-support/) extension (ID 615) to see the tray icon.
+
+**Installation Commands:**
+
+Ubuntu / Debian:
+```bash
+sudo apt install python3-gi gir1.2-gtk-3.0 gir1.2-ayatanaappindicator3-0.1
+```
+
+Fedora:
+```bash
+sudo dnf install python3-gobject gtk3 libayatana-appindicator
+```
+
+Arch Linux:
+```bash
+sudo pacman -S python-gobject gtk3 libayatana-appindicator
+```
+
+**Option A — AppImage (Universal)**
+1. Download `ClaudeUsageBar-linux-x86_64.AppImage` from Releases.
+2. Make it executable: `chmod +x ClaudeUsageBar-linux-x86_64.AppImage`
+3. Run it.
+
+**Option B — Install locally from source**
+```bash
+git clone https://github.com/rtoedz/menubar-claude-usage.git
+cd menubar-claude-usage
+./linux/build/build_local.sh
+claude-usage-bar
+```
+> Note: Wayland window positioning may vary depending on your compositor.
 
 ---
 

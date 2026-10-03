@@ -124,13 +124,37 @@ When the token expires it no longer pretends you're signed out — it shows a cl
 
 1. Download the latest `ClaudeUsageBar-x.x.x.dmg` from [Releases](../../releases)
 2. Open the DMG and drag **ClaudeUsageBar** onto **Applications**
-3. Launch it from Applications
+3. Launch it from Applications — the first time, macOS will block it; follow the [first-launch steps](#first-launch-apple-could-not-verify-one-time-step) below
 
 <p align="center">
   <img src="assets/dmg.png" width="420" alt="DMG installer window">
 </p>
 
-> On first launch, macOS may ask to allow access to the *Claude Code-credentials* Keychain item — click **Always Allow**.
+### First launch: "Apple could not verify…" (one-time step)
+
+The app isn't signed with an Apple Developer ID (that requires a paid Apple Developer account), so macOS blocks the first launch of a downloaded app. This is expected and you only have to do it once.
+
+**Step 1 — Try to open the app.** macOS shows *"ClaudeUsageBar" Not Opened*. Click **Done** (not *Move to Trash*).
+
+<p align="center">
+  <img src="assets/gatekeeper-1-not-opened.png" width="300" alt="ClaudeUsageBar Not Opened warning">
+</p>
+
+**Step 2 — Allow it in System Settings.** Open **System Settings → Privacy & Security** and scroll down to the **Security** section. You'll see *"ClaudeUsageBar" was blocked to protect your Mac* — click **Open Anyway**. (If the button isn't there yet, try opening the app once more, then check again.)
+
+<p align="center">
+  <img src="assets/gatekeeper-2-open-anyway.png" width="640" alt="Open Anyway in Privacy & Security">
+</p>
+
+**Step 3 — Confirm.** A pop-up asks *Open "ClaudeUsageBar"?* — click **Open Anyway** again, then enter your Mac password (or use Touch ID) to accept. The menu bar app starts, and from now on it opens normally.
+
+<p align="center">
+  <img src="assets/gatekeeper-3-confirm.png" width="280" alt="Open ClaudeUsageBar confirmation">
+</p>
+
+> Building from source (Option B) doesn't trigger this prompt, because the app is built on your own Mac.
+
+> After that, macOS may also ask to allow access to the *Claude Code-credentials* Keychain item — click **Always Allow**.
 
 ### Option B — Build from source
 

@@ -3,7 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "ClaudeUsageBar",
-    platforms: [.macOS(.v15)],
+    platforms: [.macOS(.v13)],
     targets: [
         .executableTarget(
             name: "ClaudeUsageBar",

@@ -19,7 +19,7 @@
 
 ## Overview
 
-**Claude Usage** lives in your menu bar and keeps you informed about your Claude session at a glance — no browser tabs, no digging through settings.
+**Claude Usage** lives in your menu bar and keeps you informed about your Claude usage limits at a glance — no browser tabs, no digging through settings.
 
 ```
 🟠 61% · 2h 8m
@@ -29,12 +29,14 @@ The menu bar title is color-coded and always reflects the real state:
 
 | State | Menu bar |
 |-------|----------|
-| Active session | `🟢 / 🟠 / 🔴  61% · 2h 8m` |
-| No active session | `○ No session` |
+| Active 5-hour limit | `🟢 / 🟠 / 🔴  61% · 2h 8m` |
+| Weekly mode | `🟢 / 🟠 / 🔴  38% wk · 3d` |
+| No active 5-hour limit | `○ No 5h limit` |
+| Loading / no data yet | `◌ …` |
 | Token expired | `⚠ Expired` |
 | Not signed in | `○ Sign in` |
 
-Click the icon to open the detail popover.
+Click the icon to open the detail popover. Choose what the menu bar shows — 5-hour limit, weekly, or whichever is higher — from the gear menu.
 
 ---
 
@@ -45,8 +47,20 @@ Click the icon to open the detail popover.
 <td align="center" width="33%">
 <img src="assets/popover.png" width="230" alt="Usage popover"><br>
 <b>Usage</b><br>
-<sub>Session, weekly, routines & credits</sub>
+<sub>5-hour limit, weekly, per-model limits & credits</sub>
 </td>
+<td align="center" width="33%">
+<img src="assets/trends.png" width="230" alt="Usage trends"><br>
+<b>Trends</b><br>
+<sub>Show more: pace chart, forecast, and per-day weekly usage</sub>
+</td>
+<td align="center" width="33%">
+<img src="assets/models.png" width="230" alt="Models tab"><br>
+<b>Models</b><br>
+<sub>Tokens per model and project, from local Claude Code history</sub>
+</td>
+</tr>
+<tr>
 <td align="center" width="33%">
 <img src="assets/setup.png" width="230" alt="Connect Claude Code"><br>
 <b>Connect Claude Code</b><br>
@@ -57,16 +71,21 @@ Click the icon to open the detail popover.
 <b>Session expired</b><br>
 <sub>Token expired or Keychain locked</sub>
 </td>
+<td></td>
 </tr>
 </table>
 
+<sub>Screenshots use sample data.</sub>
+
 The main popover shows:
 
-- **Session usage** — 5-hour rolling window with a live countdown
-- **Weekly usage** — 7-day window with reset day/time
-- **Daily Routines** — quota at a glance
-- **Usage Credits** — ON/OFF status
-- **Launch at Login** toggle
+- **5-hour limit** — ring gauge, live countdown, and a projection of when you'll hit the limit (or that it lasts past reset). **Show more** opens a chart of the current window with a 0–100% axis, your usage so far, and a dashed forecast at your current pace
+- **Weekly usage** — 7-day window with reset day/time, a pace marker, and the % per day you have left. **Show more** adds a weekly chart and a per-day row showing how much of the weekly limit each day used (days start at your weekly reset time)
+- **Per-model limits** — Opus, Sonnet and other limits appear automatically when your plan reports them
+- **Plan badge** — Pro / Max 5x / Max 20x
+- **Usage credits & allowance** — ON/OFF, spend, and any dollar allowance
+- **Models tab** — tokens per model, top projects, and cache / thinking / subagent shares for the 5-hour window, today, or the week, read from your local Claude Code transcripts (this Mac only)
+- **Gear menu** — Launch at Login and the menu bar display mode
 - One-click **Refresh** and **Quit**
 
 When the token expires it no longer pretends you're signed out — it shows a clear **Session expired** screen and refreshes automatically the next time you use Claude Code.
@@ -76,6 +95,11 @@ When the token expires it no longer pretends you're signed out — it shows a cl
 ## Features
 
 - **Real-time data** — polls the Anthropic usage endpoint every 2 minutes, with a 60-second local countdown in between
+- **Rate-limit aware** — opening the popover never fetches more than once per 45 seconds, and a `429` makes the app wait as long as the server asks (`Retry-After`, or 2 minutes doubling up to 15) while your last numbers stay on screen
+- **Per-model usage** — transcripts in `~/.claude/projects` are indexed incrementally in the background (only new data is read after the first run), with small totals cached in `~/Library/Application Support/ClaudeUsageBar/`
+- **Pace projection** — a short usage history is kept locally (7 days, in `~/Library/Application Support/ClaudeUsageBar/`) to estimate your burn rate
+- **Multiple accounts** — usage history and the cached response are kept per Claude account (identified through the account id, no password involved), so switching accounts never mixes their charts; the account name appears in the header once a second account is seen
+- **Offline-friendly** — the last good response is cached, so a rate-limited or offline launch shows recent numbers with their age
 - **Color-coded indicators** — 🟢 0–60% · 🟠 61–85% · 🔴 86–100%
 - **Accurate auth states** — tells "not signed in", "expired/locked", and "active" apart instead of showing a misleading sign-in screen
 - **Flexible credential lookup** — honors `CLAUDE_CONFIG_DIR`, the default `~/.claude`, and the macOS Keychain
@@ -130,9 +154,23 @@ Claude Usage reads your OAuth token from the same places Claude Code stores it, 
 2. `~/.claude/.credentials.json`
 3. macOS Keychain — service `Claude Code-credentials`
 
-It then calls `https://api.anthropic.com/api/oauth/usage` directly with `URLSession` — no subprocess, no extra runtime.
+It then calls `https://api.anthropic.com/api/oauth/usage` directly with `URLSession` — no subprocess, no extra runtime. A second call to `/api/oauth/profile` identifies the account (only at launch and when the login token changes) so history can be kept per account. These are the only network requests the app makes.
 
 If the token can't be read or the API returns `401`, the app distinguishes a genuine sign-out (no credentials anywhere) from an expired/locked token (credentials present), and shows the matching screen.
+
+### What is stored locally
+
+The API only reports the current percentage — it has no history. The charts, pace forecast and per-day numbers are built from points the app records itself, so they start when the app first runs and have gaps while it is closed.
+
+Everything lives in `~/Library/Application Support/ClaudeUsageBar/`:
+
+| File | Contents |
+|------|----------|
+| `history-<account>.json` | Up to 7 days of 5-hour / weekly percentage samples, per account |
+| `last-usage-<account>.json` | The last good API response, shown immediately at launch |
+| `model-index.json` | Per-5-minute token totals from Claude Code transcripts, for the Models tab |
+
+The Models tab reads `~/.claude/projects/**/*.jsonl` (Claude Code on this Mac only — not claude.ai or other machines). Files untouched for 10 days are skipped, and only newly appended lines are read after the first run. Transcripts don't record which account wrote them, so the tab combines all accounts on the Mac. Token counts are not a share of your plan limit — the API doesn't report per-model percentages on every plan.
 
 ---
 
@@ -158,9 +196,11 @@ The DMG background (title, arrow, Applications icon) is generated by `scripts/ge
 ```
 Sources/ClaudeUsageBar/
 ├── main.swift          Entry point
-├── AppDelegate.swift   NSStatusItem + NSPopover wiring
-├── UsageManager.swift  API fetch, polling, model, login item
-└── PopoverView.swift   SwiftUI dark popover + setup/expired screens
+├── AppDelegate.swift   NSStatusItem + popover panel wiring
+├── UsageManager.swift  API fetch, polling, accounts, display model, login item
+├── UsageHistory.swift  Sample history store + burn-rate projection
+├── ModelIndex.swift    Incremental Claude Code transcript indexer (Models tab)
+└── PopoverView.swift   SwiftUI popover, charts, Models tab, setup/expired screens
 Resources/
 ├── AppIcon.icns        App icon (all sizes)
 └── dmg-background.png   DMG installer window background
@@ -181,6 +221,10 @@ make_dmg.sh             Packages the app into a DMG installer
 |----------|--------|
 | `CUB_DEBUG_POPOVER=1` | Renders the popover in a standalone window for screenshots |
 | `CUB_TEST_LOGIN=1` / `=0` | Enables / disables the Launch-at-Login item on launch |
+| `CUB_MOCK=1` | Sample data and history, no network, nothing written to disk |
+| `CUB_MOCK_STATE=missing` / `expired` | With `CUB_MOCK`, shows the sign-in / expired screens |
+| `CUB_MOCK_ACCOUNTS=1` | With `CUB_MOCK`, shows the multi-account header |
+| `CUB_RENDER=/path/out.png` | Renders the popover to a PNG and quits (used for the README screenshots) |
 
 ---
 
